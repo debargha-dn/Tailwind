@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake and Ladder Game</title>
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f8ff;
+        }
+        .game-container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+        }
+        .board {
+            display: grid;
+            grid-template-columns: repeat(10, 50px);
+            grid-template-rows: repeat(10, 50px);
+            border: 5px solid #4CAF50;
+            position: relative;
+        }
+        .cell {
+            width: 50px;
+            height: 50px;
+            border: 1px solid #ddd;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+        .player {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            position: absolute;
+        }
+        .player-human { background-color: blue; }
+        .player-ai { background-color: red; }
+        .snake-head { background-color: #FF6347; }
+        .snake-tail { background-color: #32CD32; }
+        .ladder { 
+            background-image: url('ladder.png'); 
+            background-size: cover; 
+        }
+        .dice {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .roll-btn {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        .status-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .status-box {
+            padding: 10px;
+            border: 2px solid #4CAF50;
+            background-color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="board" id="board"></div>
+        <div class="dice">
+            <div id="dice-result">🎲 1</div>
+            <button class="roll-btn" onclick="rollDice()">Roll Dice</button>
+        </div>
+        <div class="status-container">
+            <div class="status-box" id="human-status">Human Turn</div>
+            <div class="status-box" id="ai-status">AI Turn</div>
+        </div>
+    </div>
+
+    <script>
+        const board = document.getElementById("board");
+        const diceResult = document.getElementById("dice-result");
+
+        const snakes = { 98: 88, 75: 55, 43: 22, 61: 41 };
+        const ladders = { 3: 51, 6: 27, 20: 70, 36: 55, 63: 95 };
+
+        let humanPosition = 1;
+        let aiPosition = 1;
+        let isHumanTurn = true;
+        
+        function createBoard() {
+            for (let i = 100; i > 0; i--) {
+                const cell = document.createElement("div");
+                cell.className = "cell";
+                cell.id = `cell-${i}`;
+                cell.textContent = i;
+                if (snakes[i]) cell.classList.add('snake-head');
+                if (Object.values(snakes).includes(i)) cell.classList.add('snake-tail');
+                if (ladders[i] || Object.values(ladders).includes(i)) cell.classList.add('ladder');
+                board.appendChild(cell);
+            }
+        }
+
+        function placePlayer(playerClass, position) {
+            const player = document.createElement("div");
+            player.className = `player ${playerClass}`;
+            document.getElementById(`cell-${position}`).appendChild(player);
+        }
+
+        function movePlayer(playerClass, position, steps) {
+            let newPosition = position + steps;
+            if (newPosition > 100) newPosition = 100;
+            if (snakes[newPosition]) newPosition = snakes[newPosition];
+            if (ladders[newPosition]) newPosition = ladders[newPosition];
+
+            const player = document.querySelector(`.${playerClass}`);
+            player.remove();
+            placePlayer(playerClass, newPosition);
+
+            if (newPosition === 100) {
+                setTimeout(() => {
+                    alert(`${playerClass === 'player-human' ? '🎉 Human' : '🤖 AI'} Wins!`);
+                }, 200);
+            }
+
+            return newPosition;
+        }
+
+        function rollDice() {
+            const roll = Math.floor(Math.random() * 6) + 1;
+            diceResult.textContent = `🎲 ${roll}`;
+
+            if (isHumanTurn) {
+                humanPosition = movePlayer('player-human', humanPosition, roll);
+                isHumanTurn = false;
+            } else {
+                aiPosition = movePlayer('player-ai', aiPosition, roll);
+                isHumanTurn = true;
+            }
+        }
+
+        createBoard();
+        placePlayer("player-human", humanPosition);
+        placePlayer("player-ai", aiPosition);
+    </script>
+</body>
+</html>
